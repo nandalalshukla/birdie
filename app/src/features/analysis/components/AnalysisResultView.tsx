@@ -8,6 +8,7 @@ import { spacing } from '@/theme';
 
 import { analysisAudioUrl } from '../api';
 import type { AnalysisJob } from '../types';
+import { SpectrogramView } from './SpectrogramView';
 import { WindowTimeline } from './WindowTimeline';
 
 type Props = {
@@ -95,6 +96,8 @@ export function AnalysisResultView({ job, renderSpeciesFooter, children }: Props
           · threshold {Math.round(result.min_confidence * 100)}%
         </Text>
       </Card>
+
+      {job.has_spectrogram ? <SpectrogramView jobId={job.id} /> : null}
     </View>
   );
 }

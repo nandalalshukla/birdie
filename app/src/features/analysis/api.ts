@@ -59,3 +59,7 @@ export function getAnalysis(id: string): Promise<AnalysisJob> {
 export function analysisAudioUrl(id: string): string {
   return apiUrl(`/analyses/${id}/audio`);
 }
+
+export function analysisSpectrogramUrl(id: string): string {
+  return apiUrl(`/analyses/${id}/spectrogram.png`);
+}

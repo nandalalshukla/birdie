@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from datetime import datetime, timezone
 
 from app.config import Settings
@@ -7,6 +8,7 @@ from app.models import AnalysisJob, JobStatus
 from app.services.aggregation import aggregate, detected_noise
 from app.services.audio import AudioError, load_audio, validate_duration
 from app.services.classifiers import get_classifier
+from app.services.spectrogram import render_spectrogram
 
 log = logging.getLogger(__name__)
 
@@ -32,8 +34,9 @@ class AnalysisPipeline:
                 "min_confidence": job.min_confidence,
             }
 
+        spectrogram_path = self.settings.spectrograms_dir / f"{job_id}.png"
         try:
-            duration, result = self.run(**params)
+            duration, result = self.run(**params, spectrogram_path=spectrogram_path)
         except AudioError as exc:
             self._fail(job_id, str(exc))
             return
@@ -46,10 +49,13 @@ class AnalysisPipeline:
             job = s.get(AnalysisJob, job_id)
             job.duration_seconds = duration
             job.result = result
+            job.spectrogram_path = str(spectrogram_path) if spectrogram_path.exists() else None
             job.status = JobStatus.done
             job.finished_at = datetime.now(timezone.utc)
 
-    def run(self, *, audio_path: str, lat, lon, date, min_confidence: float) -> tuple[float, dict]:
+    def run(
+        self, *, audio_path: str, lat, lon, date, min_confidence: float, spectrogram_path: Path | None = None
+    ) -> tuple[float, dict]:
         cfg = self.settings
         audio = load_audio(audio_path, sample_rate=cfg.sample_rate)
         audio = validate_duration(audio, cfg.min_duration_seconds, cfg.max_duration_seconds)
@@ -73,6 +79,11 @@ class AnalysisPipeline:
             "species": [s.as_dict() for s in aggregate(classification.detections, min_confidence)],
             "noise": detected_noise(classification.detections),
         }
+        if spectrogram_path is not None:
+            try:
+                render_spectrogram(audio, spectrogram_path, result["windows"], cfg.window_seconds)
+            except Exception:  # a missing picture must not fail the identification
+                log.exception("Spectrogram rendering failed")
         return round(audio.duration, 2), result
 
     @staticmethod

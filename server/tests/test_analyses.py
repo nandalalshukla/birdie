@@ -61,3 +61,10 @@ def test_species_are_aggregated_and_audio_is_served(client, wav_bytes):
     assert top["windows"] >= 1 and top["confidence"] >= 0.5
     r = client.get(f"/analyses/{job_id}/audio")
     assert r.status_code == 200 and r.headers["content-type"] == "audio/wav"
+
+
+def test_spectrogram_endpoint(client, wav_bytes):
+    job_id = client.post("/analyses", files={"audio": ("clip.wav", wav_bytes)}).json()["id"]
+    assert client.get(f"/analyses/{job_id}").json()["has_spectrogram"] is True
+    r = client.get(f"/analyses/{job_id}/spectrogram.png")
+    assert r.status_code == 200 and r.headers["content-type"] == "image/png"

@@ -72,3 +72,12 @@ def get_analysis_audio(job_id: str, session: Session = Depends(get_session)) -> 
     job = _get_job(session, job_id)
     ext = "." + job.audio_path.rsplit(".", 1)[-1].lower()
     return FileResponse(job.audio_path, media_type=MEDIA_TYPES.get(ext, "application/octet-stream"))
+
+
+@router.get("/{job_id}/spectrogram.png")
+def get_analysis_spectrogram(job_id: str, session: Session = Depends(get_session)) -> FileResponse:
+    """Mel spectrogram (150 Hz–15 kHz) with BirdNET's 3 s windows and top labels."""
+    job = _get_job(session, job_id)
+    if not job.spectrogram_path:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Spectrogram not available")
+    return FileResponse(job.spectrogram_path, media_type="image/png", headers={"Cache-Control": "public, max-age=86400"})
