@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "BirdEar",
+    "slug": "birdear",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.birdear.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "BirdEar records short clips of birdsong to identify the species.",
+        "NSLocationWhenInUseUsageDescription": "BirdEar uses your location to narrow down which birds are likely nearby and to place sightings on the map."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.birdear.app",
+      "permissions": [
+        "RECORD_AUDIO",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-image",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "BirdEar records short clips of birdsong to identify the species."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "BirdEar uses your location to narrow down which birds are likely nearby."
+        }
+      ]
+    ],
+    "scheme": "birdear",
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "apiUrl": "http://localhost:8000"
+    }
+  }
+}
