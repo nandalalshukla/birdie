@@ -33,3 +33,21 @@ def test_upload_too_large(client, settings):
     settings.max_upload_mb = 0
     r = client.post("/analyses", files={"audio": ("clip.wav", b"x" * 10)})
     assert r.status_code == 413
+
+
+def test_mock_pipeline_returns_window_detections(client, wav_bytes):
+    job_id = client.post("/analyses", files={"audio": ("clip.wav", wav_bytes)}).json()["id"]
+    body = client.get(f"/analyses/{job_id}").json()
+    assert body["status"] == "done"
+    assert body["duration_seconds"] == 9.0
+    assert body["result"]["window_count"] == 3
+    assert body["result"]["windows"], "mock classifier should detect the test tone"
+
+
+def test_too_short_recording_fails_cleanly(client):
+    from tests.conftest import make_wav
+
+    job_id = client.post("/analyses", files={"audio": ("clip.wav", make_wav(seconds=1))}).json()["id"]
+    body = client.get(f"/analyses/{job_id}").json()
+    assert body["status"] == "failed"
+    assert "too short" in body["error"]

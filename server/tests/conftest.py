@@ -9,7 +9,6 @@ from fastapi.testclient import TestClient
 from app.config import Settings
 from app.main import create_app
 from app.worker.queue import SyncQueue
-from app.worker.tasks import process_analysis
 
 
 @pytest.fixture
@@ -19,7 +18,7 @@ def settings(tmp_path: Path) -> Settings:
 
 @pytest.fixture
 def client(settings: Settings):
-    app = create_app(settings=settings, queue=SyncQueue(process_analysis))
+    app = create_app(settings=settings, queue_factory=SyncQueue)
     with TestClient(app) as c:
         yield c
 
