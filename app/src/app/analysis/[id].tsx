@@ -1,7 +1,7 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
 
-import { Card, Screen, Text } from '@/components/ui';
-import { JobProgress, useAnalysisJob } from '@/features/analysis';
+import { Button, Card, Screen, Text } from '@/components/ui';
+import { AnalysisResultView, JobProgress, useAnalysisJob } from '@/features/analysis';
 import { useThemeColors } from '@/theme';
 
 export default function AnalysisScreen() {
@@ -19,13 +19,11 @@ export default function AnalysisScreen() {
         <Card>
           <Text variant="heading">Analysis failed</Text>
           <Text muted>{job.error}</Text>
+          <Button title="Record again" variant="secondary" onPress={() => router.back()} />
         </Card>
-      ) : (
-        <Card>
-          <Text variant="heading">Done</Text>
-          <Text muted>{job?.result?.species.length ?? 0} species found.</Text>
-        </Card>
-      )}
+      ) : job ? (
+        <AnalysisResultView job={job} />
+      ) : null}
     </Screen>
   );
 }

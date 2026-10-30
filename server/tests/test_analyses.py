@@ -51,3 +51,13 @@ def test_too_short_recording_fails_cleanly(client):
     body = client.get(f"/analyses/{job_id}").json()
     assert body["status"] == "failed"
     assert "too short" in body["error"]
+
+
+def test_species_are_aggregated_and_audio_is_served(client, wav_bytes):
+    job_id = client.post("/analyses", files={"audio": ("clip.wav", wav_bytes)}).json()["id"]
+    result = client.get(f"/analyses/{job_id}").json()["result"]
+    assert result["species"], "mock detections above 0.5 should aggregate into species"
+    top = result["species"][0]
+    assert top["windows"] >= 1 and top["confidence"] >= 0.5
+    r = client.get(f"/analyses/{job_id}/audio")
+    assert r.status_code == 200 and r.headers["content-type"] == "audio/wav"

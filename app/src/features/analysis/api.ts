@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-import { request } from '@/lib/api/client';
+import { apiUrl, request } from '@/lib/api/client';
 import { getDeviceId } from '@/lib/device';
 
 import type { AnalysisJob, JobStatus } from './types';
@@ -54,4 +54,8 @@ export async function uploadRecording(params: UploadParams): Promise<{ id: strin
 
 export function getAnalysis(id: string): Promise<AnalysisJob> {
   return request(`/analyses/${id}`);
+}
+
+export function analysisAudioUrl(id: string): string {
+  return apiUrl(`/analyses/${id}/audio`);
 }

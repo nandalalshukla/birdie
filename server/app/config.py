@@ -29,6 +29,10 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = ["*"]
     species_info_timeout: float = 6.0
+    species_info_ttl_days: int = 30
+    # xeno-canto API v3 needs a (free) key. Without it we link to the website instead.
+    xeno_canto_api_key: str | None = None
+    user_agent: str = "BirdEar/0.1 (https://github.com/nandalalshukla/birdie)"
 
     @property
     def uploads_dir(self) -> Path:

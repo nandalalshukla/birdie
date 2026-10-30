@@ -47,3 +47,13 @@ class AnalysisJob(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class SpeciesInfoCache(Base):
+    """Cached photo/summary/call-sample metadata from public sources."""
+
+    __tablename__ = "species_info"
+
+    scientific_name: Mapped[str] = mapped_column(String(255), primary_key=True)
+    data: Mapped[dict] = mapped_column(JSON)
+    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)

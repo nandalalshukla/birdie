@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_app_settings, get_queue
@@ -49,9 +50,25 @@ def create_analysis(
 
 @router.get("/{job_id}", response_model=JobOut)
 def get_analysis(job_id: str, session: Session = Depends(get_session)) -> JobOut:
-    job = session.get(AnalysisJob, job_id)
-    if job is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Analysis not found")
+    job = _get_job(session, job_id)
     out = JobOut.model_validate(job)
     out.has_spectrogram = bool(job.spectrogram_path)
     return out
+
+
+def _get_job(session: Session, job_id: str) -> AnalysisJob:
+    job = session.get(AnalysisJob, job_id)
+    if job is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Analysis not found")
+    return job
+
+
+MEDIA_TYPES = {".m4a": "audio/mp4", ".mp4": "audio/mp4", ".wav": "audio/wav", ".webm": "audio/webm", ".ogg": "audio/ogg"}
+
+
+@router.get("/{job_id}/audio")
+def get_analysis_audio(job_id: str, session: Session = Depends(get_session)) -> FileResponse:
+    """The original recording, for playback in the app."""
+    job = _get_job(session, job_id)
+    ext = "." + job.audio_path.rsplit(".", 1)[-1].lower()
+    return FileResponse(job.audio_path, media_type=MEDIA_TYPES.get(ext, "application/octet-stream"))

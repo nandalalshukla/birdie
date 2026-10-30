@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from app.config import Settings
 from app.db import session_scope
 from app.models import AnalysisJob, JobStatus
+from app.services.aggregation import aggregate, detected_noise
 from app.services.audio import AudioError, load_audio, validate_duration
 from app.services.classifiers import get_classifier
 
@@ -67,8 +68,10 @@ class AnalysisPipeline:
             "window_seconds": cfg.window_seconds,
             "location_filtered": classification.location_filtered,
             "candidate_species": classification.candidate_species,
+            "min_confidence": min_confidence,
             "windows": [d.as_dict() for d in windows],
-            "species": [],
+            "species": [s.as_dict() for s in aggregate(classification.detections, min_confidence)],
+            "noise": detected_noise(classification.detections),
         }
         return round(audio.duration, 2), result
 

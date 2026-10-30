@@ -13,6 +13,7 @@ export type SpeciesResult = {
   common_name: string;
   confidence: number; // aggregated
   max_confidence: number;
+  mean_confidence: number;
   windows: number; // windows the species was detected in
   first_seen: number;
   last_seen: number;
@@ -21,9 +22,13 @@ export type SpeciesResult = {
 export type AnalysisResult = {
   species: SpeciesResult[];
   windows: WindowDetection[];
-  window_count?: number;
-  location_filtered?: boolean;
-  model?: string;
+  window_count: number;
+  window_seconds: number;
+  min_confidence: number;
+  location_filtered: boolean;
+  candidate_species: number | null;
+  noise: string[];
+  model: string;
 };
 
 export type AnalysisJob = {
