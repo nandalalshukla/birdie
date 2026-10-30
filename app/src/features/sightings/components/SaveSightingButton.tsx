@@ -68,7 +68,7 @@ export function SaveSightingButton({ jobId, scientificName, commonName, hasLocat
         <Switch value={isPublic} onValueChange={setIsPublic} trackColor={{ true: colors.primary }} />
       </View>
       <Button
-        title={`Save ${commonName} sighting`}
+        title="Save sighting"
         variant={primary ? 'primary' : 'secondary'}
         onPress={onSave}
         loading={saving}

@@ -20,7 +20,7 @@ function Chip({ t, selected, onPress }: { t: TrendingSpecies; selected: boolean;
       ]}
     >
       <SpeciesPhoto uri={info?.photo_url} size={40} />
-      <View>
+      <View style={styles.text}>
         <Text style={styles.name} numberOfLines={1}>
           {t.common_name}
         </Text>
@@ -73,5 +73,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     maxWidth: 220,
   },
+  text: { flexShrink: 1 },
   name: { fontWeight: '600' },
 });

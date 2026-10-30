@@ -78,6 +78,9 @@ export function buildLeafletHtml(opts: { lat: number; lon: number; zoom: number;
     if (a) a.addEventListener('click', function (ev) { ev.preventDefault(); send({ type: 'select', id: a.getAttribute('data-id') }); });
   });
 
+  // Keep the "you are here" dot under the sighting markers (overlayPane is z-index 400).
+  map.createPane('user');
+  map.getPane('user').style.zIndex = 350;
   var userMarker = null;
   function emitBounds() {
     var b = map.getBounds();
@@ -93,7 +96,7 @@ export function buildLeafletHtml(opts: { lat: number; lon: number; zoom: number;
     else if (msg.type === 'setUser') {
       var ll = [msg.lat, msg.lon];
       if (userMarker) userMarker.setLatLng(ll);
-      else userMarker = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="user-dot"></div>', iconSize: [20, 20] }), interactive: false }).addTo(map);
+      else userMarker = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="user-dot"></div>', iconSize: [20, 20] }), interactive: false, pane: 'user' }).addTo(map);
     }
   }
   window.birdear = { handle: handle };
