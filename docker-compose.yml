@@ -1,0 +1,14 @@
+services:
+  api:
+    build: ./server
+    ports:
+      - "8000:8000"
+    environment:
+      BIRDEAR_CLASSIFIER: birdnet
+      BIRDEAR_WORKER_THREADS: 2
+      # BIRDEAR_XENO_CANTO_API_KEY: your-key
+    volumes:
+      - birdear-data:/data
+
+volumes:
+  birdear-data:
