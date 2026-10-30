@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 
-from app.api.routes import analyses, health, sightings, species
+from app.api.routes import analyses, feed, health, sightings, species
 from app.config import Settings, get_settings
 from app.db import init_db, session_scope
 from app.models import AnalysisJob, JobStatus
@@ -65,6 +65,7 @@ def create_app(
     app.include_router(analyses.router)
     app.include_router(species.router)
     app.include_router(sightings.router)
+    app.include_router(feed.router)
     return app
 
 

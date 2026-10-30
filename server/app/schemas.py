@@ -53,8 +53,24 @@ class SightingOut(BaseModel):
     is_public: bool
     is_mine: bool
     created_at: datetime
+    distance_km: float | None = None
 
 
 class SightingPage(BaseModel):
     items: list[SightingOut]
     next_cursor: str | None
+
+
+class TrendingSpecies(BaseModel):
+    scientific_name: str
+    common_name: str
+    sightings: int
+    last_seen: datetime
+
+
+class FeedStats(BaseModel):
+    days: int
+    sightings: int
+    species: int
+    observers: int
+    trending: list[TrendingSpecies]
