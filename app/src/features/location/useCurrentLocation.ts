@@ -3,11 +3,23 @@ import { useCallback, useEffect, useState } from 'react';
 
 export type Coords = { lat: number; lon: number; accuracy: number | null };
 
-type State = {
-  coords: Coords | null;
-  status: 'idle' | 'locating' | 'ready' | 'denied' | 'error';
-  error: string | null;
-};
+type Status = 'idle' | 'locating' | 'ready' | 'denied' | 'error';
+type State = { coords: Coords | null; status: Status; error: string | null };
+
+async function locate(): Promise<State> {
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') return { coords: null, status: 'denied', error: 'Location permission denied' };
+    const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest });
+    return {
+      coords: { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy },
+      status: 'ready',
+      error: null,
+    };
+  } catch (e) {
+    return { coords: null, status: 'error', error: e instanceof Error ? e.message : String(e) };
+  }
+}
 
 /**
  * Requests foreground location permission and a high-accuracy fix. BirdNET uses
@@ -19,25 +31,21 @@ export function useCurrentLocation(autoRequest = true) {
 
   const refresh = useCallback(async (): Promise<Coords | null> => {
     setState((s) => ({ ...s, status: 'locating', error: null }));
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setState({ coords: null, status: 'denied', error: 'Location permission denied' });
-        return null;
-      }
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest });
-      const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy };
-      setState({ coords, status: 'ready', error: null });
-      return coords;
-    } catch (e) {
-      setState({ coords: null, status: 'error', error: e instanceof Error ? e.message : String(e) });
-      return null;
-    }
+    const next = await locate();
+    setState(next);
+    return next.coords;
   }, []);
 
   useEffect(() => {
-    if (autoRequest) void refresh();
-  }, [autoRequest, refresh]);
+    if (!autoRequest) return;
+    let cancelled = false;
+    void locate().then((next) => !cancelled && setState(next));
+    return () => {
+      cancelled = true;
+    };
+  }, [autoRequest]);
 
-  return { ...state, refresh };
+  // While the automatic request is in flight, report it as locating.
+  const status: Status = autoRequest && state.status === 'idle' ? 'locating' : state.status;
+  return { ...state, status, refresh };
 }

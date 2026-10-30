@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useMemo, useRef, type ComponentType, type Ref } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState, type ComponentType, type Ref } from 'react';
 import { StyleSheet, useColorScheme } from 'react-native';
 import { WebView as RNWebView, type WebViewMessageEvent, type WebViewProps } from 'react-native-webview';
 
@@ -21,9 +21,8 @@ export const LeafletMap = forwardRef<LeafletMapHandle, LeafletMapProps>(function
   const colors = useThemeColors();
   const dark = useColorScheme() === 'dark';
 
-  // Only build the page once; later updates go through post().
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const html = useMemo(
+  // Built once; later updates go through post() so the map keeps its state.
+  const [html] = useState(
     () =>
       buildLeafletHtml({
         lat: initialCenter.lat,
@@ -33,7 +32,6 @@ export const LeafletMap = forwardRef<LeafletMapHandle, LeafletMapProps>(function
         accent: colors.accent,
         dark,
       }),
-    [],
   );
 
   useImperativeHandle(ref, () => ({

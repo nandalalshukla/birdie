@@ -45,7 +45,7 @@ export default function FeedScreen() {
           </View>
           {scope === 'nearby' && (location.status === 'denied' || location.status === 'error') ? (
             <Text variant="caption" muted style={styles.centerText}>
-              Location is off, so you're seeing sightings from everywhere.
+              Location is off, so you&apos;re seeing sightings from everywhere.
             </Text>
           ) : null}
           {feed.stats ? <TrendingStrip stats={feed.stats} selected={species} onSelect={setSpecies} /> : null}

@@ -1,4 +1,4 @@
-import { createElement, forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
+import { createElement, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { useThemeColors } from '@/theme';
@@ -17,8 +17,8 @@ export const LeafletMap = forwardRef<LeafletMapHandle, LeafletMapProps>(function
   const onMessageRef = useRef(onMessage);
   onMessageRef.current = onMessage;
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const html = useMemo(
+  // Built once; later updates go through post() so the map keeps its state.
+  const [html] = useState(
     () =>
       buildLeafletHtml({
         lat: initialCenter.lat,
@@ -28,7 +28,6 @@ export const LeafletMap = forwardRef<LeafletMapHandle, LeafletMapProps>(function
         accent: colors.accent,
         dark,
       }),
-    [],
   );
 
   useEffect(() => {

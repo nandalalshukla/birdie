@@ -1,55 +1,79 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { getFeed, getFeedStats, type FeedQuery, type FeedSighting, type FeedStats } from '../api';
 
+type Loaded = {
+  key: string;
+  items: FeedSighting[];
+  stats: FeedStats | null;
+  cursor: string | null;
+  error: string | null;
+};
+
+async function fetchFirstPage(key: string): Promise<Loaded> {
+  const q = JSON.parse(key) as FeedQuery;
+  try {
+    const [page, stats] = await Promise.all([getFeed(q), getFeedStats(q)]);
+    return { key, items: page.items, stats, cursor: page.next_cursor, error: null };
+  } catch (e) {
+    return { key, items: [], stats: null, cursor: null, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 /** Cursor-paginated community feed with pull-to-refresh and infinite scroll. */
 export function useFeed(query: FeedQuery) {
-  const [items, setItems] = useState<FeedSighting[]>([]);
-  const [stats, setStats] = useState<FeedStats | null>(null);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const key = JSON.stringify(query);
-  const generation = useRef(0);
+  const [data, setData] = useState<Loaded | null>(null);
+  const [pulling, setPulling] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  // (Re)load whenever the query changes. Results for a stale query are ignored.
+  useEffect(() => {
+    let cancelled = false;
+    void fetchFirstPage(key).then((loaded) => !cancelled && setData(loaded));
+    return () => {
+      cancelled = true;
+    };
+  }, [key]);
+
+  const current = data?.key === key ? data : null;
 
   const refresh = useCallback(async () => {
-    const gen = ++generation.current;
-    const q = JSON.parse(key) as FeedQuery;
-    setRefreshing(true);
-    try {
-      const [page, s] = await Promise.all([getFeed(q), getFeedStats(q)]);
-      if (gen !== generation.current) return;
-      setItems(page.items);
-      setCursor(page.next_cursor);
-      setStats(s);
-      setError(null);
-    } catch (e) {
-      if (gen === generation.current) setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      if (gen === generation.current) setRefreshing(false);
-    }
+    setPulling(true);
+    const loaded = await fetchFirstPage(key);
+    setData((prev) => (loaded.key === key ? loaded : prev));
+    setPulling(false);
   }, [key]);
 
   const loadMore = useCallback(async () => {
-    if (!cursor || loadingMore || refreshing) return;
-    const gen = generation.current;
+    if (!current?.cursor || loadingMore) return;
     setLoadingMore(true);
     try {
-      const page = await getFeed(JSON.parse(key) as FeedQuery, cursor);
-      if (gen !== generation.current) return;
-      setItems((prev) => [...prev, ...page.items.filter((i) => !prev.some((p) => p.id === i.id))]);
-      setCursor(page.next_cursor);
+      const page = await getFeed(JSON.parse(key) as FeedQuery, current.cursor);
+      setData((prev) =>
+        prev && prev.key === key
+          ? {
+              ...prev,
+              items: [...prev.items, ...page.items.filter((i) => !prev.items.some((p) => p.id === i.id))],
+              cursor: page.next_cursor,
+            }
+          : prev,
+      );
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setData((prev) => (prev ? { ...prev, error: e instanceof Error ? e.message : String(e) } : prev));
     } finally {
       setLoadingMore(false);
     }
-  }, [cursor, key, loadingMore, refreshing]);
+  }, [current?.cursor, key, loadingMore]);
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  return { items, stats, refreshing, loadingMore, hasMore: !!cursor, error, refresh, loadMore };
+  return {
+    items: current?.items ?? [],
+    stats: current?.stats ?? null,
+    error: current?.error ?? null,
+    refreshing: pulling || current === null,
+    loadingMore,
+    hasMore: !!current?.cursor,
+    refresh,
+    loadMore,
+  };
 }

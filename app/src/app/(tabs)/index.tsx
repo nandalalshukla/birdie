@@ -50,7 +50,7 @@ export default function ListenScreen() {
   return (
     <Screen scroll style={styles.content}>
       <View style={styles.header}>
-        <Text variant="title">What's singing?</Text>
+        <Text variant="title">What&apos;s singing?</Text>
         <Text muted style={styles.center}>
           Point your phone towards the bird and record {duration} seconds.
         </Text>
@@ -66,7 +66,7 @@ export default function ListenScreen() {
       <Text variant="heading">
         {formatSeconds(recorder.elapsedSeconds)} / {formatSeconds(duration)}
       </Text>
-      <LevelMeter metering={recorder.metering} active={isRecording} />
+      <LevelMeter levels={recorder.levels} active={isRecording} />
 
       {recorder.phase === 'finished' ? (
         <View style={styles.actions}>

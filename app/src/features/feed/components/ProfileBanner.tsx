@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 
 import { Card, Text } from '@/components/ui';
@@ -7,13 +7,15 @@ import { radius, spacing, useThemeColors } from '@/theme';
 
 /** Lets the user choose the name shown next to their shared sightings. */
 export function ProfileBanner() {
-  const colors = useThemeColors();
-  const { profile, ready, update } = useProfile();
-  const [name, setName] = useState(profile.displayName ?? '');
+  const { profile, ready } = useProfile();
+  // Remount once the stored profile has loaded so the input starts from it.
+  return <NameEditor key={ready ? 'ready' : 'loading'} initial={profile.displayName ?? ''} />;
+}
 
-  useEffect(() => {
-    if (ready) setName(profile.displayName ?? '');
-  }, [ready, profile.displayName]);
+function NameEditor({ initial }: { initial: string }) {
+  const colors = useThemeColors();
+  const { update } = useProfile();
+  const [name, setName] = useState(initial);
 
   return (
     <Card>
