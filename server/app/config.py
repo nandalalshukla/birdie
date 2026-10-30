@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     max_duration_seconds: float = 20.0
 
     cors_origins: list[str] = ["*"]
+    # Other people's sightings are shown with coordinates rounded to this many
+    # decimals (2 ≈ 1 km) so exact nest sites and homes aren't published.
+    public_coordinate_decimals: int = 2
     species_info_timeout: float = 6.0
     species_info_ttl_days: int = 30
     # xeno-canto API v3 needs a (free) key. Without it we link to the website instead.

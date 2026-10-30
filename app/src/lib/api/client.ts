@@ -1,4 +1,5 @@
 import { env } from '@/config/env';
+import { getDeviceId } from '@/lib/device';
 
 export class ApiError extends Error {
   constructor(
@@ -34,6 +35,7 @@ export async function request<T>(path: string, { body, query, headers, ...init }
       ...init,
       headers: {
         Accept: 'application/json',
+        'X-Device-Id': await getDeviceId(),
         ...(body !== undefined && !isForm ? { 'Content-Type': 'application/json' } : {}),
         ...headers,
       },

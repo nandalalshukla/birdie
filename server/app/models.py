@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, Enum, Float, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Enum, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -57,3 +57,26 @@ class SpeciesInfoCache(Base):
     scientific_name: Mapped[str] = mapped_column(String(255), primary_key=True)
     data: Mapped[dict] = mapped_column(JSON)
     fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class Sighting(Base):
+    """A species the user confirmed from an analysis, pinned to where it was heard."""
+
+    __tablename__ = "sightings"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    job_id: Mapped[str | None] = mapped_column(ForeignKey("analysis_jobs.id", ondelete="SET NULL"), index=True)
+    device_id: Mapped[str] = mapped_column(String(64), index=True)
+    observer_name: Mapped[str | None] = mapped_column(String(64))
+
+    scientific_name: Mapped[str] = mapped_column(String(255), index=True)
+    common_name: Mapped[str] = mapped_column(String(255))
+    confidence: Mapped[float] = mapped_column(Float)
+
+    lat: Mapped[float] = mapped_column(Float, index=True)
+    lon: Mapped[float] = mapped_column(Float, index=True)
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    note: Mapped[str | None] = mapped_column(Text)
+    is_public: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)
